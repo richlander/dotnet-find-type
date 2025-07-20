@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TypeFinder installation and symlink script
+# TypeFinder Installation Script
 # This script publishes the TypeFinder tool and creates a symlink for easy access
 
 set -e

@@ -21,7 +21,7 @@ The tool is located in the `src/TypeFinder` directory. To use it, you need .NET 
 Use the provided installation script to publish and install the tool:
 
 ```bash
-./find-type.sh --install-dir ~/.local/bin
+./install-typefinder.sh --install-dir ~/.local/bin
 ```
 
 This will:
