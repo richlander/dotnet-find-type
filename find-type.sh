@@ -1,44 +1,36 @@
 #!/bin/bash
 
-# TypeFinder wrapper script for easier usage by coding agents
-# Usage: ./find-type.sh <type-name> [options]
+# TypeFinder installation and symlink script
+# This script publishes the TypeFinder tool and creates a symlink for easy access
 
-if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-    echo "Usage: ./find-type.sh <type-name> [options]"
-    echo ""
-    echo "Options:"
-    echo "  --exact-match    Search for exact type name match"
-    echo "  --case-sensitive Use case-sensitive search"
-    echo "  --file-types     Comma-separated list of file extensions to search"
-    echo "  --max-results    Maximum number of results to return"
-    echo "  --include-references Include type references (not just definitions)"
-    echo "  --workspace      Specify workspace path (default: current directory)"
-    echo "  --help, -h       Show this help message"
-    echo ""
-    echo "Examples:"
-    echo "  ./find-type.sh User"
-    echo "  ./find-type.sh \"MyClass\" --exact-match"
-    echo "  ./find-type.sh Controller --file-types .cs,.ts"
-    echo "  ./find-type.sh MyClass --include-references"
-    exit 1
-fi
+set -e
 
-# Default workspace to current directory
-WORKSPACE_PATH="."
-TYPE_NAME="$1"
-shift
+# Default installation directory
+INSTALL_DIR="${HOME}/.local/bin"
+TOOL_NAME="find-type"
 
-# Parse options
-OPTIONS=""
+# Parse command line arguments
 while [[ $# -gt 0 ]]; do
     case $1 in
-        --workspace)
-            WORKSPACE_PATH="$2"
+        --install-dir)
+            INSTALL_DIR="$2"
             shift 2
             ;;
+        --help|-h)
+            echo "Usage: $0 [options]"
+            echo ""
+            echo "Options:"
+            echo "  --install-dir <path>  Specify installation directory (default: ~/.local/bin)"
+            echo "  --help, -h           Show this help message"
+            echo ""
+            echo "This script publishes the TypeFinder tool and creates a symlink for easy access."
+            echo "The tool will be available as 'find-type' in the specified installation directory."
+            exit 0
+            ;;
         *)
-            OPTIONS="$OPTIONS $1"
-            shift
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
             ;;
     esac
 done
@@ -49,10 +41,92 @@ if ! command -v dotnet &> /dev/null; then
         export PATH="$HOME/.dotnet:$PATH"
     else
         echo "Error: .NET is not installed. Please install .NET 8.0 or later."
+        echo "You can install it using: curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel LTS"
         exit 1
     fi
 fi
 
-# Run the TypeFinder
-cd "$(dirname "$0")/src/TypeFinder"
-dotnet run -- "$WORKSPACE_PATH" "$TYPE_NAME" $OPTIONS
+# Get the script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="${SCRIPT_DIR}/src/TypeFinder"
+
+# Check if the project directory exists
+if [ ! -d "$PROJECT_DIR" ]; then
+    echo "Error: TypeFinder project not found at $PROJECT_DIR"
+    exit 1
+fi
+
+# Create installation directory if it doesn't exist
+mkdir -p "$INSTALL_DIR"
+
+# Check if we should use Native AOT
+USE_AOT=false
+if command -v clang &> /dev/null && dpkg -l | grep -q zlib1g-dev; then
+    echo "Native AOT dependencies found (clang, zlib1g-dev). Using Native AOT publishing."
+    USE_AOT=true
+else
+    echo "Native AOT dependencies not found. Using standard publishing."
+    echo "To enable Native AOT, install: clang, zlib1g-dev"
+fi
+
+# Publish the application
+echo "Publishing TypeFinder..."
+
+cd "$PROJECT_DIR"
+
+if [ "$USE_AOT" = true ]; then
+    echo "Publishing with Native AOT..."
+    dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishAot=true
+    PUBLISH_DIR="../../artifacts/publish/TypeFinder/release_linux-x64"
+else
+    echo "Publishing with standard compilation..."
+    dotnet publish -c Release -r linux-x64 --self-contained true
+    PUBLISH_DIR="../../artifacts/publish/TypeFinder/release_linux-x64"
+fi
+
+# Find the executable
+EXECUTABLE=""
+if [ -f "$PUBLISH_DIR/TypeFinder" ]; then
+    EXECUTABLE="$PUBLISH_DIR/TypeFinder"
+elif [ -f "$PUBLISH_DIR/TypeFinder.exe" ]; then
+    EXECUTABLE="$PUBLISH_DIR/TypeFinder.exe"
+else
+    echo "Error: Could not find TypeFinder executable in $PUBLISH_DIR"
+    exit 1
+fi
+
+# Make the executable executable
+chmod +x "$EXECUTABLE"
+
+# Create symlink
+SYMLINK_PATH="$INSTALL_DIR/$TOOL_NAME"
+if [ -L "$SYMLINK_PATH" ]; then
+    echo "Removing existing symlink..."
+    rm "$SYMLINK_PATH"
+elif [ -f "$SYMLINK_PATH" ]; then
+    echo "Removing existing file..."
+    rm "$SYMLINK_PATH"
+fi
+
+echo "Creating symlink: $SYMLINK_PATH -> $EXECUTABLE"
+ln -sf "$(realpath "$EXECUTABLE")" "$SYMLINK_PATH"
+
+# Add to PATH if not already there
+if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
+    echo ""
+    echo "Note: $INSTALL_DIR is not in your PATH."
+    echo "Add the following line to your shell profile (.bashrc, .zshrc, etc.):"
+    echo "export PATH=\"$INSTALL_DIR:\$PATH\""
+    echo ""
+fi
+
+echo ""
+echo "TypeFinder has been successfully installed!"
+echo "You can now use it with: $TOOL_NAME <type-name> [options]"
+echo ""
+echo "Example usage:"
+echo "  $TOOL_NAME Program"
+echo "  $TOOL_NAME \"MyClass\" --exact-match"
+echo "  $TOOL_NAME Controller --include-references"
+echo ""
+echo "For help: $TOOL_NAME --help"

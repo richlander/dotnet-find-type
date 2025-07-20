@@ -16,6 +16,21 @@ This tool is specifically designed for integration with coding agents like Curso
 
 The tool is located in the `src/TypeFinder` directory. To use it, you need .NET 8.0 or later installed.
 
+### Quick Installation
+
+Use the provided installation script to publish and install the tool:
+
+```bash
+./find-type.sh --install-dir ~/.local/bin
+```
+
+This will:
+1. Publish the TypeFinder tool (using Native AOT if dependencies are available)
+2. Create a symlink named `find-type` in the specified directory
+3. Make the tool available for use
+
+**Note**: Native AOT publishing is preferred for better performance, however, it should only be used if the following two packages are installed: `clang`, `zlib1g-dev`.
+
 ### Installing .NET (if not already installed)
 
 ```bash
@@ -27,9 +42,9 @@ export PATH="$HOME/.dotnet:$PATH"
 
 ### Basic Usage
 
-#### Using the wrapper script (recommended for agents):
+#### Using the installed tool (recommended):
 ```bash
-./find-type.sh <type-name> [options]
+find-type <workspace-path> <type-name> [options]
 ```
 
 #### Using the .NET application directly:
@@ -42,37 +57,37 @@ dotnet run -- <workspace-path> <type-name>
 
 1. **Find a class named "User" in the workspace:**
    ```bash
-   ./find-type.sh User
+   find-type . User
    ```
 
 2. **Find exact type definitions only:**
    ```bash
-   ./find-type.sh "MyClass" --exact-match
+   find-type . "MyClass" --exact-match
    ```
 
 3. **Search only in C# and TypeScript files:**
    ```bash
-   ./find-type.sh Controller --file-types .cs,.ts
+   find-type . Controller --file-types .cs,.ts
    ```
 
 4. **Case-sensitive search:**
    ```bash
-   ./find-type.sh "MyClass" --case-sensitive
+   find-type . "MyClass" --case-sensitive
    ```
 
 5. **Limit results to 10:**
    ```bash
-   ./find-type.sh Service --max-results 10
+   find-type . Service --max-results 10
    ```
 
 6. **Search in a specific workspace:**
    ```bash
-   ./find-type.sh User --workspace /path/to/other/workspace
+   find-type /path/to/other/workspace User
    ```
 
 7. **Find all references to a type:**
    ```bash
-   ./find-type.sh MyClass --include-references
+   find-type . MyClass --include-references
    ```
 
 ## Command Line Options
@@ -84,7 +99,6 @@ dotnet run -- <workspace-path> <type-name>
 | `--file-types` | Comma-separated list of file extensions to search | `.cs,.ts,.js,.py,.java,.go,.rs,.php` |
 | `--max-results` | Maximum number of results to return | 50 |
 | `--include-references` | Include type references (not just definitions) | false |
-| `--workspace` | Specify workspace path (wrapper script only) | current directory |
 
 ## Supported File Types
 
@@ -137,16 +151,16 @@ Coding agents can use this tool to:
 
 ```bash
 # Agent wants to find the User class definition
-./find-type.sh User --exact-match
+find-type . User --exact-match
 
 # Agent wants to see all usages of a specific interface
-./find-type.sh IUserService --include-references
+find-type . IUserService --include-references
 
 # Agent wants to find all controller classes
-./find-type.sh Controller --file-types .cs,.ts
+find-type . Controller --file-types .cs,.ts
 
 # Agent wants to understand all references to a type
-./find-type.sh MyClass --include-references --max-results 100
+find-type . MyClass --include-references --max-results 100
 ```
 
 ## Building and Running
@@ -163,8 +177,17 @@ dotnet run -- <arguments>
 ```
 
 ### Create a Standalone Executable
+
+To publish an app in the default mode, use `dotnet publish`. That produces a release binary for the current machine:
+
 ```bash
 dotnet publish -c Release -r linux-x64 --self-contained true
+```
+
+For Native AOT (requires clang and zlib1g-dev), use:
+
+```bash
+dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishAot=true
 ```
 
 ## Features
