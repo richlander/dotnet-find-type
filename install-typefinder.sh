@@ -59,30 +59,12 @@ fi
 # Create installation directory if it doesn't exist
 mkdir -p "$INSTALL_DIR"
 
-# Check if we should use Native AOT
-USE_AOT=false
-if command -v clang &> /dev/null && dpkg -l | grep -q zlib1g-dev; then
-    echo "Native AOT dependencies found (clang, zlib1g-dev). Using Native AOT publishing."
-    USE_AOT=true
-else
-    echo "Native AOT dependencies not found. Using standard publishing."
-    echo "To enable Native AOT, install: clang, zlib1g-dev"
-fi
-
 # Publish the application
 echo "Publishing TypeFinder..."
 
 cd "$PROJECT_DIR"
-
-if [ "$USE_AOT" = true ]; then
-    echo "Publishing with Native AOT..."
-    dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishAot=true
-    PUBLISH_DIR="../../artifacts/publish/TypeFinder/release_linux-x64"
-else
-    echo "Publishing with standard compilation..."
-    dotnet publish -c Release -r linux-x64 --self-contained true
-    PUBLISH_DIR="../../artifacts/publish/TypeFinder/release_linux-x64"
-fi
+dotnet publish -c Release -r linux-x64 --self-contained true
+PUBLISH_DIR="../../artifacts/publish/TypeFinder/release_linux-x64"
 
 # Find the executable
 EXECUTABLE=""

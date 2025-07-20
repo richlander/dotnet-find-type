@@ -29,7 +29,7 @@ This will:
 2. Create a symlink named `find-type` in the specified directory
 3. Make the tool available for use
 
-**Note**: Native AOT publishing is preferred for better performance, however, it should only be used if the following two packages are installed: `clang`, `zlib1g-dev`.
+
 
 ### Installing .NET (if not already installed)
 
@@ -184,11 +184,7 @@ To publish an app in the default mode, use `dotnet publish`. That produces a rel
 dotnet publish -c Release -r linux-x64 --self-contained true
 ```
 
-For Native AOT (requires clang and zlib1g-dev), use:
 
-```bash
-dotnet publish -c Release -r linux-x64 --self-contained true -p:PublishAot=true
-```
 
 ## Features
 
