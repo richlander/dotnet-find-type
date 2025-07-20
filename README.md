@@ -33,9 +33,12 @@ This will:
 
 ### Installing .NET (if not already installed)
 
+For comprehensive .NET installation instructions optimized for AI development assistants, see:
+https://raw.githubusercontent.com/richlander/dotnet-install-for-agents/main/README.md
+
+Quick install:
 ```bash
-curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel LTS
-export PATH="$HOME/.dotnet:$PATH"
+curl -sSL https://raw.githubusercontent.com/richlander/dotnet-install-for-agents/main/scripts/setup-dotnet.sh | bash
 ```
 
 ## Usage
