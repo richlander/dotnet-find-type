@@ -36,6 +36,24 @@ This will:
 For comprehensive .NET installation instructions optimized for AI development assistants, see:
 https://raw.githubusercontent.com/richlander/dotnet-install-for-agents/main/README.md
 
+> **⚠️ IMPORTANT: Git History Warning**
+> 
+> **DO NOT commit these downloaded files to git history!** The installation scripts may download files that should never be added to version control:
+> - `_temp/` directory (contains scripts and installers when downloaded to project root)
+> - `~/.dotnet/` directory (SDK installation location)
+> 
+> **Always ensure these files/directories are in your .gitignore or excluded from commits. This is critical to avoid polluting project repositories.**
+>
+> **Add these patterns to .gitignore when working in project repositories:**
+>
+> ```gitignore
+> # .NET installation scripts and tools (DO NOT COMMIT)
+> _temp/
+> 
+> # .NET SDK installation directory (if installed locally)
+> .dotnet/
+> ```
+
 Quick install:
 ```bash
 curl -sSL https://raw.githubusercontent.com/richlander/dotnet-install-for-agents/main/scripts/setup-dotnet.sh | bash

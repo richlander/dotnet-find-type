@@ -3,6 +3,12 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# .NET installation scripts and tools (DO NOT COMMIT)
+_temp/
+
+# .NET SDK installation directory (if installed locally)
+.dotnet/
+
 # User-specific files
 *.rsuser
 *.suo
