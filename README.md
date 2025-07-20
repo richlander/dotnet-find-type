@@ -1,14 +1,16 @@
-# TypeFinder - Type Location Tool for Coding Agents
+# TypeFinder - Advanced Type Location Tool for Coding Agents
 
-TypeFinder is a .NET console application designed to help coding agents quickly locate types within a workspace. It provides fast, accurate type discovery across multiple programming languages and file types.
+TypeFinder is a .NET console application designed to help coding agents quickly locate types within a workspace. It leverages the Roslyn compiler APIs to provide fast, accurate, and comprehensive type discovery across multiple programming languages and file types.
 
 ## Overview
 
 This tool is specifically designed for integration with coding agents like Cursor, providing them with the ability to:
-- Find exact locations of type definitions
-- Search across multiple programming languages
-- Get contextual information about type usage
+- Find exact locations of type definitions using Roslyn compiler APIs
+- Discover all references to types throughout the codebase
+- Search across multiple programming languages with fallback to file-based search
+- Get contextual information about type usage with precise line numbers
 - Filter results by file types and search criteria
+- Understand type relationships and dependencies
 
 ## Installation
 
@@ -68,6 +70,11 @@ dotnet run -- <workspace-path> <type-name>
    ./find-type.sh User --workspace /path/to/other/workspace
    ```
 
+7. **Find all references to a type:**
+   ```bash
+   ./find-type.sh MyClass --include-references
+   ```
+
 ## Command Line Options
 
 | Option | Description | Default |
@@ -76,6 +83,7 @@ dotnet run -- <workspace-path> <type-name>
 | `--case-sensitive` | Use case-sensitive search | false |
 | `--file-types` | Comma-separated list of file extensions to search | `.cs,.ts,.js,.py,.java,.go,.rs,.php` |
 | `--max-results` | Maximum number of results to return | 50 |
+| `--include-references` | Include type references (not just definitions) | false |
 | `--workspace` | Specify workspace path (wrapper script only) | current directory |
 
 ## Supported File Types
@@ -99,17 +107,19 @@ The tool provides structured output with the following information for each matc
 ```
 File: /path/to/file.cs
 Line: 42
+Type: MyClass
+Kind: class
 Context:     public class MyClass
 >>>         {
 >>>             private string _name;
 >>>         }
-Type: class
 ```
 
 - **File**: Full path to the file containing the type
 - **Line**: Line number where the type was found
+- **Type**: The actual type name that was found
+- **Kind**: Type of the match (class, interface, struct, enum, record, namespace, method, property, field, event, reference, or symbol)
 - **Context**: Surrounding code context (2 lines before and after)
-- **Type**: Type of the match (class, interface, struct, enum, record, type, typedef, function, or reference)
 
 ## Integration with Coding Agents
 
@@ -118,9 +128,10 @@ Type: class
 Coding agents can use this tool to:
 
 1. **Locate type definitions** when they need to understand the structure of a type
-2. **Find usage patterns** to understand how types are used throughout the codebase
+2. **Find all references** to understand how types are used throughout the codebase
 3. **Get contextual information** to make better code suggestions
 4. **Discover related types** by searching for similar naming patterns
+5. **Understand type relationships** by analyzing dependencies and usage patterns
 
 ### Example Agent Usage
 
@@ -129,10 +140,13 @@ Coding agents can use this tool to:
 ./find-type.sh User --exact-match
 
 # Agent wants to see all usages of a specific interface
-./find-type.sh IUserService
+./find-type.sh IUserService --include-references
 
 # Agent wants to find all controller classes
 ./find-type.sh Controller --file-types .cs,.ts
+
+# Agent wants to understand all references to a type
+./find-type.sh MyClass --include-references --max-results 100
 ```
 
 ## Building and Running
@@ -155,11 +169,13 @@ dotnet publish -c Release -r linux-x64 --self-contained true
 
 ## Features
 
-- **Multi-language Support**: Searches across multiple programming languages
-- **Flexible Search**: Exact match or partial match options
+- **Roslyn Integration**: Uses Microsoft's Roslyn compiler APIs for accurate type analysis
+- **Multi-language Support**: Searches across multiple programming languages with fallback to file-based search
+- **Comprehensive Discovery**: Finds both type definitions and all references throughout the codebase
+- **Flexible Search**: Exact match or partial match options with case sensitivity control
 - **Contextual Output**: Shows surrounding code for better understanding
-- **Performance Optimized**: Fast recursive file searching
-- **Error Handling**: Graceful handling of permission errors and invalid files
+- **Performance Optimized**: Fast compilation-based searching with configurable limits
+- **Error Handling**: Graceful handling of compilation errors and invalid files
 - **Configurable**: Customizable file types and result limits
 
 ## Error Handling
@@ -168,13 +184,15 @@ The tool handles various error conditions gracefully:
 - Invalid workspace paths
 - Permission denied errors when accessing files
 - Unreadable or corrupted files
+- Compilation errors in projects
 - Invalid command line arguments
 
 ## Performance Considerations
 
-- The tool searches files recursively, so large workspaces may take longer
+- The tool uses Roslyn compilation for accurate analysis, which may take longer for large projects
 - Use `--file-types` to limit search scope for better performance
 - Use `--max-results` to limit output size
+- The tool falls back to file-based search if compilation fails
 - The tool skips files it cannot read and continues with the search
 
 ## Contributing

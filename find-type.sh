@@ -11,6 +11,7 @@ if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "  --case-sensitive Use case-sensitive search"
     echo "  --file-types     Comma-separated list of file extensions to search"
     echo "  --max-results    Maximum number of results to return"
+    echo "  --include-references Include type references (not just definitions)"
     echo "  --workspace      Specify workspace path (default: current directory)"
     echo "  --help, -h       Show this help message"
     echo ""
@@ -18,6 +19,7 @@ if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
     echo "  ./find-type.sh User"
     echo "  ./find-type.sh \"MyClass\" --exact-match"
     echo "  ./find-type.sh Controller --file-types .cs,.ts"
+    echo "  ./find-type.sh MyClass --include-references"
     exit 1
 fi
 
